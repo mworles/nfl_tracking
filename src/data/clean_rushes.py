@@ -47,7 +47,10 @@ df['has_ball'] = np.where(df['frame.id'] >= df['play_handoff_frame'], 1, 0)
 df['teamcode'] = np.where(df['team'] == 'home', df['homeTeamAbbr'], df['visitorTeamAbbr'])
 
 # create key to indicate direction of team's offense
-ckey = df.groupby(['gameId', 'quarter'], as_index=False)[['x_ball',
+# remove rows close to midfield to avoid some directional errors
+ckey = df[df['frame.id'] == df['play_snap_frame']]
+ckey = ckey[~ckey['x_ball'].between(57, 63)]
+ckey = ckey.groupby(['gameId', 'quarter'], as_index=False)[['x_ball',
                                                           'yardlineSide',
                                                           'homeTeamAbbr',
                                                           'yardlineNumber']].first()
@@ -85,14 +88,14 @@ def standard_direction(row, col, mval):
             x = row[col]
     return x
 
-df['xu'] = df.apply(lambda x: standard_direction(x, 'x', 120), axis=1)
-
 # set min and max of y
 df['y'] = np.where(df['y'] < 0, 0, df['y'])
 df['y'] = np.where(df['y'] > 53.3, 53.3, df['y'])
 
-# create standard direction y column
+# create standard direction for x, y for man, x for ball
+df['xu'] = df.apply(lambda x: standard_direction(x, 'x', 120), axis=1)
 df['yu'] = df.apply(lambda x: standard_direction(x, 'y', 53.3), axis=1)
+df['xu_ball'] = df.apply(lambda x: standard_direction(x, 'x_ball', 120), axis=1)
 
 # x of previous row
 group = ['displayName', 'gameId', 'playId']
@@ -114,8 +117,11 @@ def transform_play_value(data, event, var, new_var):
 
 df = transform_play_value(df, 'snap', 'xu', 'x_snap')
 df = transform_play_value(df, 'snap', 'yu', 'y_snap')
+df = transform_play_value(df, 'snap', 'xu_ball', 'xu_ball_snap')
+
 df['xufs'] = df['xu'] - df['x_snap']
 df['yufs'] = df['yu'] - df['y_snap']
+df['xuscrim'] = df['xu'] - df['xu_ball_snap']
 
 # xu_fs of previous row
 df['xufs_lag'] = df.groupby(group)['xufs'].apply(shift)
@@ -125,5 +131,24 @@ df['xufs_ch'] = df['xufs'] - df['xufs_lag']
 df['yufs_lag'] = df.groupby(group)['yufs'].apply(shift)
 df['yufs_ch'] = df['yufs'] - df['yufs_lag']
 
+# dir of previous row
+df['dir_lag'] = df.groupby(group)['dir'].apply(shift)
+df['dir_ch'] = 180 - abs(abs(df['dir'] - df['dir_lag']) - 180)
+
+# cumulative columns
+fx_cum = lambda x: x.cumsum()
+df['dis_cum'] = df.groupby(group)['dis'].apply(fx_cum)
+df['dir_cum'] = df.groupby(group)['dir_ch'].apply(fx_cum)
+
+# drop lagged columns
+cols_lag = ['xufs_lag', 'yufs_lag', 'dir_lag']
+df = df.drop(columns=cols_lag)
+
+'''
+df = transform_play_value(df, 'first_contact', 'frame.id', 'fc_frame')
+df['after_contact'] = np.where(df['frame.id'] > df['fc_frame'], 1, 0)
+'''
 # save file
-df.to_csv(data_dir + 'interim/rushes_clean.csv')
+f = 'interim/rushes_clean.csv'
+print 'saving %s' % (f)
+df.to_csv(data_dir + f)

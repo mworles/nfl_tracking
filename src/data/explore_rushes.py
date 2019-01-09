@@ -11,25 +11,39 @@ plt.style.use('ggplot')
 # import data
 data_dir = 'C:/Users/mworley/nfl_tracking/data/'
 df = pd.read_csv(data_dir + 'interim/rushes_clean.csv', index_col=0)
-df.head()
 
 # %%
 # subset data
-dfsub = df.loc[:, ['displayName', 'quarter', 'event', 'frame.id', 'gameId', 'playId', 'xufs', 'yu']]
-dfsub = dfsub[dfsub['displayName'] == "Dalvin Cook"]
-#dfsub.set_index('xufs', inplace=True)
+dfsub = df[df['PlayResult'] < 10]
+dfsub = df[df['dir_cum'] < 150]
+dfsub = dfsub[dfsub['xuscrim'] < 5]
+dfsub = dfsub[dfsub['displayName'] == "Ty Montgomery"]
+dfsub = dfsub.loc[:, ['gameId', 'playId', 'frame.id', 's', 'xufs', 'yu', 'dir_cum']]
+#dfsub.set_index('frame.id', inplace=True)
 
-dfsub['xufs_min'] = dfsub.groupby(['playId'])['xufs'].transform('min')
-dfsub = dfsub[dfsub['event'] == 'ball_snap']
-dfsub.sort_values(['xufs_min', 'playId', 'frame.id'], inplace=True)
-dfsub.head(20)
-
-
-
-
-# %%plot all runs
-dfsub.groupby(['gameId', 'playId'])['yu'].plot()
+# plot all runs
+for i, d in dfsub.groupby(['gameId', 'playId']):
+    x = d['frame.id']
+    y = d['dir_cum']
+    c = d['s']
+    plt.scatter(x = x, y = y, c=c, s = 10, cmap='hot', alpha=0.50)
 plt.show()
+
+# %% 3-d plots
+dfsub = df.loc[:, ['gameId', 'playId', 'displayName', 'frame.id',
+                   'xufs', 'xuscrim', 'yu', 's', 'dis', 'dir_cum', 'dis_cum']]
+dfsub = dfsub[dfsub['displayName'] == "Dalvin Cook"]
+dfsub = dfsub[dfsub['dir_cum'] < 100]
+
+# create arrays for plot
+for i, d in dfsub.groupby(['gameId', 'playId']):
+    x = d['dir_cum'].values
+    y = d['dis_cum'].values
+    s = d['s'].values
+    ax = plt.axes(projection='3d')
+    ax.plot_trisurf(x, y, s, cmap='viridis', edgecolor='none')
+plt.show()
+
 
 # %%
 #chk = df[df['gameId'] == 2017091100]
