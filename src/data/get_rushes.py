@@ -1,6 +1,6 @@
 import pandas as pd
 import os
-os.chdir('C:/Users/mworley/nflbdb/Data/')
+os.chdir('C:/Users/mworley/nfl_tracking/data/')
 
 def get_rushes(file):
 

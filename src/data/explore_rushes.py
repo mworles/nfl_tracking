@@ -9,14 +9,37 @@ import os
 plt.style.use('ggplot')
 
 # import data
-data_dir = 'C:/Users/mworley/nflbdb/Data/'
-df = pd.read_csv(data_dir + 'interim/rushes_std.csv', index_col=0)
+data_dir = 'C:/Users/mworley/nfl_tracking/data/'
+df = pd.read_csv(data_dir + 'interim/rushes_clean.csv', index_col=0)
+df.head()
 
-# plot all runs
-dfsub = df.loc[:, ['displayName', 'gameId', 'playId', 'x_std', 'y_std']]
-dfsub.set_index('x_std', inplace=True)
-dfsub.groupby(['displayName', 'gameId', 'playId'])['y_std'].plot()
+# %%
+# subset data
+dfsub = df.loc[:, ['displayName', 'quarter', 'event', 'frame.id', 'gameId', 'playId', 'xufs', 'yu']]
+dfsub = dfsub[dfsub['displayName'] == "Dalvin Cook"]
+#dfsub.set_index('xufs', inplace=True)
+
+dfsub['xufs_min'] = dfsub.groupby(['playId'])['xufs'].transform('min')
+dfsub = dfsub[dfsub['event'] == 'ball_snap']
+dfsub.sort_values(['xufs_min', 'playId', 'frame.id'], inplace=True)
+dfsub.head(20)
+
+
+
+
+# %%plot all runs
+dfsub.groupby(['gameId', 'playId'])['yu'].plot()
 plt.show()
+
+# %%
+#chk = df[df['gameId'] == 2017091100]
+chk = df.loc[:, ['displayName', 'quarter', 'event', 'frame.id', 'x',
+                  'playId', 'xufs', 'yu', 'x_ball', 'x_snap', 'x_ball_cmid', 'homedir']]
+
+chk['xufs_min'] = chk.groupby(['playId'])['xufs'].transform('min')
+chk = chk[chk['event'] == 'ball_snap']
+chk.sort_values(['xufs_min', 'playId', 'frame.id'], inplace=True)
+chk.head(40)
 
 
 # %%

@@ -2,8 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 
-
-data_dir = 'C:/Users/mworley/nflbdb/Data/'
+data_dir = 'C:/Users/mworley/nfl_tracking/data/'
 df = pd.read_csv(data_dir + 'interim/rushes.csv', index_col=0)
 games = pd.read_csv(data_dir + 'raw/games.csv')
 
@@ -29,10 +28,13 @@ df['handoff_frame'] = np.where(df['handoff'] == 1, df['frame.id'], np.nan)
 df['end_frame'] = np.where(df['end'] == 1, df['frame.id'], np.nan)
 
 # within game play, get first frame of each event type
-# transform to add to all forw for each play
+# transform to add to all rows for each play
 df['play_snap_frame'] = df.groupby(['gameId', 'playId'])['snap_frame'].transform('min')
 df['play_handoff_frame'] = df.groupby(['gameId', 'playId'])['handoff_frame'].transform('min')
 df['play_end_frame'] = df.groupby(['gameId', 'playId'])['end_frame'].transform('min')
+
+# drop single-row indicators
+df = df.drop(columns=['snap_frame', 'handoff_frame', 'end_frame'])
 
 # drop frames before snap and after end
 df = df[df['frame.id'] >= df['play_snap_frame']]
@@ -83,21 +85,45 @@ def standard_direction(row, col, mval):
             x = row[col]
     return x
 
-df['x_std'] = df.apply(lambda x: standard_direction(x, 'x', 120), axis=1)
+df['xu'] = df.apply(lambda x: standard_direction(x, 'x', 120), axis=1)
 
 # set min and max of y
 df['y'] = np.where(df['y'] < 0, 0, df['y'])
 df['y'] = np.where(df['y'] > 53.3, 53.3, df['y'])
 
 # create standard direction y column
-df['y_std'] = df.apply(lambda x: standard_direction(x, 'y', 53.3), axis=1)
+df['yu'] = df.apply(lambda x: standard_direction(x, 'y', 53.3), axis=1)
 
 # x of previous row
-df['x_std_lag'] = df.groupby(['displayName', 'gameId', 'playId'])['x_std'].apply(lambda y: y.shift(1))
-df['x_std_ch'] = df['x_std'] - df['x_std_lag']
+group = ['displayName', 'gameId', 'playId']
+shift = lambda x: x.shift(1)
 
+df['xu_lag'] = df.groupby(group)['xu'].apply(shift)
+df['xu_ch'] = df['xu'] - df['xu']
 
-df.head()
+# y of previous row
+df['yu_lag'] = df.groupby(group)['yu'].apply(shift)
+df['yu_ch'] = df['yu'] - df['yu_lag']
 
-# save temporary file
-df.to_csv(data_dir + 'interim/rushes_std.csv')
+# function to get a play_level value and transform across all play rows
+def transform_play_value(data, event, var, new_var):
+    c = data.loc[data[event] == 1, ['gameId', 'playId', var]]
+    c = c.rename(columns={var: new_var})
+    new_data = pd.merge(data, c, on=['gameId', 'playId'], how='inner')
+    return new_data
+
+df = transform_play_value(df, 'snap', 'xu', 'x_snap')
+df = transform_play_value(df, 'snap', 'yu', 'y_snap')
+df['xufs'] = df['xu'] - df['x_snap']
+df['yufs'] = df['yu'] - df['y_snap']
+
+# xu_fs of previous row
+df['xufs_lag'] = df.groupby(group)['xufs'].apply(shift)
+df['xufs_ch'] = df['xufs'] - df['xufs_lag']
+
+# yu_fs of previous row
+df['yufs_lag'] = df.groupby(group)['yufs'].apply(shift)
+df['yufs_ch'] = df['yufs'] - df['yufs_lag']
+
+# save file
+df.to_csv(data_dir + 'interim/rushes_clean.csv')
