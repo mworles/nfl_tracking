@@ -1,17 +1,15 @@
 import pandas as pd
-import os
-os.chdir('C:/Users/mworley/nfl_tracking/data/')
 
 def get_rushes(file):
 
     print file
 
     # import file
-    gm = pd.read_csv('raw/' + file)
+    data_dir = 'C:/Users/mworley/nfl_tracking/data/'
+    gm = pd.read_csv(data_dir + 'raw/' + file)
 
     # some cleaning on tracking file
     gm['event'].fillna('NA', inplace=True)
-    #gm = gm[gm['displayName'] != 'football']
 
     # select all plays from one game
     gid = filter(str.isdigit, file)

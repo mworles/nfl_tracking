@@ -70,14 +70,6 @@ df[df['frame.id'] == 1].groupby('displayName')['frame.id'].count().sort_values(a
 
 
 # %%
-df['dir_lag'] = df.groupby(['displayName', 'gameId', 'playId'])['dir'].apply(lambda y: y.shift(1))
-df['dir_lag'] = np.where(df['dir_lag'].isnull(), df['dir'], df['dir_lag'])
-df['dir_dif'] = abs(df['dir'] - df['dir_lag'])
-df['dir_cum'] = df.groupby(['displayName', 'gameId', 'playId'])['dir_dif'].apply(lambda x: x.cumsum())
-
-# %%
-df['dis_cum'] = df.groupby(['displayName', 'gameId', 'playId'])['dis'].apply(lambda x: x.cumsum())
-
 # %% subset data for plot
 #dfsub = df[df['displayName'] == "Le'Veon Bell"]
 dfsub = df.loc[:, ['displayName', 'gameId', 'playId', 'dis_cum', 's']]
@@ -112,39 +104,3 @@ plt.show()
 # %%
 
 plt.close()
-
-# code to calculate distance between players
-dfnd = play[(play['team'] == 'home') & (play['jerseyNumber'] == 30)]
-off = play[(play['team'] == 'away') & (play['jerseyNumber'] == 27)]
-
-ctokeep = ['x', 'y', 's', 'dis', 'dir', 'event', 'displayName', 'frame.id']
-off = off[ctokeep]
-dfnd = dfnd[ctokeep]
-
-newcols = [c + '_off' for c in off.columns if c !='frame.id']
-newcols.append('frame.id')
-off.columns = newcols
-off.head()
-
-newcols = [c + '_def' for c in dfnd.columns if c !='frame.id']
-newcols.append('frame.id')
-dfnd.columns = newcols
-dfnd.head()
-
-# %%
-both = pd.merge(off, dfnd, on='frame.id', how='inner')
-
-both.iloc[41:, :]
-import math
-rw = both.iloc[54, :]
-dist = math.sqrt( (rw['x_def'] - rw['x_off'])**2 + (rw['y_def'] - rw['y_off'])**2 )
-
-def calc_dist(row):
-    x1 = row['x_off']
-    x2 = row['x_def']
-    y1 = row['y_off']
-    y2 = row['y_def']
-    dist = math.sqrt( (x2 - x1)**2 + (y2 - y1)**2 )
-    return dist
-
-both['distance'] = both.apply(lambda x: calc_dist(x), axis=1)
