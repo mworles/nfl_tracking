@@ -4,4 +4,4 @@
 #os.chdir(d)
 #import get_rushes
 import clean_rushes
-import get_defenders
+#import get_defenders

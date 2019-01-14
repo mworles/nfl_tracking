@@ -18,6 +18,10 @@ df = pd.merge(df, games, on='gameId', how='inner')
 df['snap'] = (df['event'] == 'ball_snap').apply(int)
 df['handoff'] = (df['event'] == 'handoff').apply(int)
 
+# code only first event as positive, some plays coded multiple snaps
+df['snapcnt']  = df.groupby(['gameId', 'playId'])['snap'].transform('cumsum')
+df['snap'] = np.where(df['snapcnt'] < 2, df['snap'], 0)
+
 # create 0/1 column for "end of play" event
 end_events = ['tackle', 'touchdown', 'out_of_bounds', 'fumble']
 df['end'] = (df['event'].isin(end_events)).apply(int)
@@ -100,6 +104,7 @@ df['xu_ball'] = df.apply(lambda x: standard_direction(x, 'x_ball', 120), axis=1)
 # x of previous row
 group = ['displayName', 'gameId', 'playId']
 shift = lambda x: x.shift(1)
+df[df[['gameId', 'playId', 'frame.id']].duplicated()].groupby(['gameId', 'playId', 'frame.id'])['frame.id'].count()
 
 df['xu_lag'] = df.groupby(group)['xu'].apply(shift)
 df['xu_ch'] = df['xu'] - df['xu']
@@ -114,6 +119,8 @@ def transform_play_value(data, event, var, new_var):
     c = c.rename(columns={var: new_var})
     new_data = pd.merge(data, c, on=['gameId', 'playId'], how='inner')
     return new_data
+
+#df[(df['gameId'] == 2017091100) & (df['playId'] == 87)][['frame.id', 'event', 'snap']]
 
 df = transform_play_value(df, 'snap', 'xu', 'x_snap')
 df = transform_play_value(df, 'snap', 'yu', 'y_snap')

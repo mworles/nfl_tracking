@@ -10,24 +10,135 @@ plt.style.use('ggplot')
 
 # import data
 data_dir = 'C:/Users/mworley/nfl_tracking/data/'
-df = pd.read_csv(data_dir + 'interim/rushes_clean.csv', index_col=0)
+df = pd.read_csv(data_dir + 'interim/rushes_clean.csv', index_col=0,
+                 low_memory=False)
+dfd = pd.read_csv(data_dir + 'interim/defenders.csv', index_col=0)
+
+dfd.groupby(['gameId', 'playId'])['frame.id'].count().describe()
+
 
 # %%
-# subset data
-dfsub = df[df['PlayResult'] < 10]
-dfsub = df[df['dir_cum'] < 150]
-dfsub = dfsub[dfsub['xuscrim'] < 5]
-dfsub = dfsub[dfsub['displayName'] == "Ty Montgomery"]
-dfsub = dfsub.loc[:, ['gameId', 'playId', 'frame.id', 's', 'xufs', 'yu', 'dir_cum']]
-#dfsub.set_index('frame.id', inplace=True)
+dfd['dis_min'] = dfd.groupby(['gameId', 'playId', 'frame.id'])['distance'].transform('min')
+c_drop = dfd.columns[-6:-1]
+dfd = dfd.drop(columns=c_drop)
+dfd = dfd.drop_duplicates()
+dfd = dfd[['playId', 'gameId', 'frame.id', 'dis_min']]
+df = pd.merge(df, dfd, on=['playId', 'gameId', 'frame.id'], how='inner')
 
-# plot all runs
-for i, d in dfsub.groupby(['gameId', 'playId']):
-    x = d['frame.id']
-    y = d['dir_cum']
-    c = d['s']
-    plt.scatter(x = x, y = y, c=c, s = 10, cmap='hot', alpha=0.50)
+# cumulative minimum defender distance
+df['dis_mincum'] = df.groupby(['gameId', 'playId'])['dis_min'].transform('cummin')
+df['first_contact'] = np.where(df['event'] == 'first_contact', 1, 0)
+df['after_contact'] = df.groupby(['gameId', 'playId'])['first_contact'].transform('cummax')
+df[df['after_contact'] == 1][['playId', 'frame.id', 'first_contact', 'xuscrim', 'dis_min', 'event']].head(20)
+smax_first5 = df[df['dis_cum'] <=5].groupby(['gameId', 'playId'], as_index=False)['s'].max()
+smax_first5.rename(columns={'s': 'smax_first5'}, inplace=True)
+df = pd.merge(df, smax_first5, on=['gameId', 'playId'], how='inner')
+
+# compute peak speed before/after contact
+dfbc = df[df['after_contact'] == 0].groupby(['gameId', 'playId'], as_index=False)
+s_max_bc = dfbc['s'].apply(max)
+s_max_bc = s_max_bc.reset_index()
+s_max_bc.columns=['gameId', 'playId', 's_max_bc']
+df = pd.merge(df, s_max_bc, on=['gameId', 'playId'], how='inner')
+df['s_max_bc_loss'] = df['s'] - df['s_max_bc']
+
+# x position at first contact
+df['x_atcontact'] = np.where(df['event'] == 'first_contact', df['xu'], np.nan)
+df['x_atcontact'] = df.groupby(['gameId', 'playId'])['x_atcontact'].transform('max')
+df['xufs_atcontact'] = df['x_atcontact'] - df['x_snap']
+df['xuscrim_atcontact'] = df['x_atcontact'] - df['xu_ball_snap']
+df['xu_fromcontact'] = df['xu'] - df['x_atcontact']
+df['xu_aftercontact'] = df.groupby(['gameId', 'playId'])['xu_fromcontact'].transform('max')
+
+# frame at contact
+df['time'] = 0.10
+df['time_cum'] = df.groupby(['gameId', 'playId'])['time'].transform('cumsum')
+df['time_atcontact'] = np.where(df['event'] == 'first_contact', df['time_cum'], np.nan)
+df['time_atcontact'] = df.groupby(['gameId', 'playId'])['time_atcontact'].transform('max')
+df['time_fromcontact'] = df['time_cum'] - df['time_atcontact']
+
+
+# %%
+a = df['displayName'] == 'Kareem Hunt'
+b = (df['xuscrim'] < 10) & (df['xuscrim'] > -10)
+c = df['dis_min'] < 2
+dfsub = df[(a) & (b) & (c)]
+#
+fig, axs = plt.subplots(figsize=(10, 8))
+for i, g in dfsub.groupby(['gameId', 'playId']):
+    x = g['yu']
+    y = g['xuscrim']
+    c = g['s']
+    ax2 = plt.scatter(x = x, y = y, marker="8", c=c, s = 40,
+                     cmap='magma', alpha=0.40)
+    dc = g[g['time_fromcontact'] == 0]
+    xc = dc['yu']
+    yc = dc['xuscrim']
+    ax3 = plt.scatter(x = xc, y = yc, marker="8", c='red', s = 40,
+                     cmap='magma', alpha=0.40)
+plt.clim(0,8)
+#plt.colorbar()
 plt.show()
+
+# %%
+# scatterplot to appear as heatmap
+fig, axs = plt.subplots(figsize=(10, 8))
+for i, d in dfsub.groupby(['gameId', 'playId']):
+    bc = d[d['after_contact'] == 1]
+    x = bc['yu']
+    y = bc['xuscrim']
+    c = bc['s']
+    ax = plt.scatter(x = x, y = y, marker="8", c=c, s = 200,
+                     cmap='magma', alpha=0.25)
+plt.clim(0,8)
+plt.colorbar()
+plt.show()
+
+
+# %%
+# plot all runs
+fig, axs = plt.subplots(figsize=(10, 8))
+for i, d in dfsub.groupby(['gameId', 'playId']):
+    bc = d[d['dis_min'] >1]
+    x = bc['y']
+    y = bc['xuscrim']
+    c = bc['dis_min']
+    #s = bc['dis_min']
+    ax = plt.scatter(x = x, y = y, marker='D', c=c, s = 8, cmap='hot', alpha=0.50)
+    ac = d[d['dis_min'] <=1]
+    x = ac['y']
+    y = ac['xuscrim']
+    c = ac['dis_min']
+    #s = bc['dis_min']
+    ax2 = plt.scatter(x = x, y = y, marker='+', c=c, s = 8, cmap='hot', alpha=0.50)
+plt.clim(0,8)
+plt.colorbar()
+plt.show()
+
+# attempt a heat map
+import seaborn as sns
+runs = dfsub.pivot("xufs", 'yu', 's')
+dfsub = dfsub.reset_index()
+
+
+
+# %%
+dfsub = dfsub[['gameId', 'playId', 'dis_cum', 's']]
+dfsub.set_index('dis_cum', inplace=True)
+dfsub.groupby(['gameId', 'playId'])['s'].plot()
+plt.show()
+
+# %%
+fig, axs = plt.subplots(figsize=(12, 6))
+dfsub = df[df['first_contact'] == 1]
+dfsub = dfsub[dfsub['PlayResult'] < 20]
+y = dfsub['xuscrim']
+x = dfsub['s']
+c = dfsub['smax_first5']
+plt.scatter(x, y, c=c, cmap='magma', alpha = 0.5)
+plt.colorbar()
+plt.show()
+
 
 # %% 3-d plots
 dfsub = df.loc[:, ['gameId', 'playId', 'displayName', 'frame.id',
