@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 
 def get_rushes(file):
 
@@ -109,20 +110,24 @@ def get_rushes(file):
 
     # inner join with ball position
     ball = gm[gm['displayName'] == 'football']
-    ball = ball.loc[:, ['gameId', 'playId', 'frame.id', 'x', 'y', 's', 'dis', 'dir']]
+    ball = ball.loc[:, ['gameId', 'playId', 'frame.id', 'x', 'y', 's', 'dis']]
     ball.rename(columns={'x': 'x_ball',
                          'y': 'y_ball',
                          's': 's_ball',
-                         'dis': 'dis_ball',
-                         'dir': 'dir_ball'}, inplace=True)
+                         'dis': 'dis_ball'}, inplace=True)
     df = pd.merge(df, ball, on=['gameId', 'playId', 'frame.id'])
 
     return df
 
 # import data for all plays
-plays = pd.read_csv('raw/plays.csv')
-files = [f for f in os.listdir('raw/') if 'tracking_gameId_' in f]
+data_dir = 'C:/Users/mworley/nfl_tracking/data/'
+plays = pd.read_csv(data_dir + 'raw/plays.csv')
+files = [f for f in os.listdir(data_dir + 'raw/') if 'tracking_gameId_' in f]
 
 gm_rushes = map(lambda x: get_rushes(x), files)
 df = pd.concat(gm_rushes)
-df.to_csv('interim/rushes.csv')
+
+# write to file
+f = data_dir + 'interim/rushes.csv'
+print 'writing %s' % (f)
+df.to_csv(f)

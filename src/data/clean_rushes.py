@@ -100,9 +100,9 @@ df['xu_ball'] = df.apply(lambda x: standard_direction(x, 'x_ball', 120), axis=1)
 
 # set columns to keep
 cols_tokeep = ['gameId', 'playId', 'frame.id', 'event', 'nflId', 'displayName',
-               'xu', 'yu', 'dis', 'dir', 'xu_ball', 'y_ball', 's_ball', 'dis_ball', 'dir_ball',
-               'team', 'PlayResult', 'snap_frame', 'handoff_frame', 'end_frame',
-                'has_ball', 'teamcode', 'playDescription']
+               'xu', 'yu', 's', 'dis', 'dir', 'xu_ball', 'y_ball', 's_ball',
+               'dis_ball', 'team', 'PlayResult', 'snap_frame', 'handoff_frame',
+               'end_frame', 'has_ball', 'teamcode', 'playDescription']
 df = df[cols_tokeep].copy()
 df = df.rename(columns={'xu': 'x', 'yu': 'y', 'xu_ball': 'x_ball'})
 

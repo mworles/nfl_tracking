@@ -60,7 +60,7 @@ def get_defenders(gid):
     return mrg
 
 data_dir = 'C:/Users/mworley/nfl_tracking/data/'
-df = pd.read_csv(data_dir + 'interim/rushes_clean.csv', index_col=0)
+df = pd.read_csv(data_dir + 'interim/rush_features.csv', index_col=0)
 gids = df['gameId'].drop_duplicates().values
 
 ds = map(lambda x: get_defenders(x), gids)

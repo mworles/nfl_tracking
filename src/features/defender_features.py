@@ -13,16 +13,9 @@ df['dfndis_mincum'] = df.groupby(['gameId', 'playId'])['dfndis_min'].transform('
 
 # indicator of whether defender within one yard or less
 df['dfn_in1'] = (df['dfndis_min'] <= 1).astype(int)
+df['dfn_in1_yet'] = df.groupby(['gameId', 'playId'])['dfn_in1'].transform('cummax')
 
-df[df['dfndis_min'] < 1.2].head(50)
-
-
-'''
-smax_first5 = df[df['dis_cum'] <=5].groupby(['gameId', 'playId'], as_index=False)['s'].max()
-smax_first5.rename(columns={'s': 'smax_first5'}, inplace=True)
-df = pd.merge(df, smax_first5, on=['gameId', 'playId'], how='inner')
-'''
-
+# write data file
 f = 'interim/defense_features.csv'
 print 'saving %s' % (f)
 df.to_csv(data_dir + f)
