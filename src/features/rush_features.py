@@ -1,11 +1,10 @@
 import pandas as pd
 import numpy as np
-'''
+
 data_dir = 'C:/Users/mworley/nfl_tracking/data/'
 df = pd.read_csv(data_dir + 'interim/rushes_clean.csv', index_col=0)
 
 # verify no frames are duplicated
-
 duplicate_frames = df[df[['gameId', 'playId', 'frame.id']].duplicated()]
 
 print "duplicate frames?"
@@ -47,15 +46,19 @@ fx_cum = lambda x: x.cumsum()
 df['dis_cum'] = df.groupby(group)['dis'].apply(fx_cum)
 df['dir_cum'] = df.groupby(group)['dir_diff'].apply(fx_cum)
 
-f = 'tmp/rush_features_tmp.csv'
+# %%
+f = 'interim/rush_features.csv'
 print 'saving %s' % (f)
 df.to_csv(data_dir + f)
+
+
 '''
-# %%
+# script for additional rush features
+#
 f = 'tmp/rush_features_tmp.csv'
 df = pd.read_csv(data_dir + f, index_col=0)
 
-# %%
+#
 df['first_contact'] = np.where(df['event'] == 'first_contact', 1, 0)
 df['after_contact'] = df.groupby(group)['first_contact'].transform('cummax')
 
@@ -81,3 +84,4 @@ df['time_cum'] = df.groupby(['gameId', 'playId'])['time'].transform('cumsum')
 df['time_atcontact'] = np.where(df['event'] == 'first_contact', df['time_cum'], np.nan)
 df['time_atcontact'] = df.groupby(['gameId', 'playId'])['time_atcontact'].transform('max')
 df['time_fromcontact'] = df['time_cum'] - df['time_atcontact']
+'''
