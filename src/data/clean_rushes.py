@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 
 data_dir = 'C:/Users/mworley/nfl_tracking/data/'
+
+print 'importing rushes file'
 df = pd.read_csv(data_dir + 'interim/rushes.csv', index_col=0)
 games = pd.read_csv(data_dir + 'raw/games.csv')
 
@@ -10,9 +12,11 @@ cols_todrop = ['isSTPlay', 'SpecialTeamsPlayType', 'KickReturnYardage',
                'PassLength', 'PassResult', 'YardsAfterCatch']
 df = df.drop(columns=cols_todrop)
 
+print 'merging rush and game data'
 # merge game data
 df = pd.merge(df, games, on='gameId', how='inner')
 
+print 'coding rush events'
 # create 0/1 indicator columns for snap and handoff events
 df['snap'] = (df['event'] == 'ball_snap').apply(int)
 df['handoff'] = (df['event'] == 'handoff').apply(int)
@@ -47,6 +51,7 @@ df['has_ball'] = np.where(df['frame.id'] >= df['handoff_frame'], 1, 0)
 # create team abbreviation indicator
 df['teamcode'] = np.where(df['team'] == 'home', df['homeTeamAbbr'], df['visitorTeamAbbr'])
 
+print 'identifying team directions'
 # create key to indicate direction of team's offense
 # remove rows close to midfield to avoid some directional errors
 ckey = df[df['frame.id'] == df['snap_frame']]
@@ -93,6 +98,7 @@ def standard_direction(row, col, mval):
 df['y'] = np.where(df['y'] < 0, 0, df['y'])
 df['y'] = np.where(df['y'] > 53.3, 53.3, df['y'])
 
+print 'setting standard rush direction'
 # create standard direction for x, y for man, x for ball
 df['xu'] = df.apply(lambda x: standard_direction(x, 'x', 120), axis=1)
 df['yu'] = df.apply(lambda x: standard_direction(x, 'y', 53.3), axis=1)
