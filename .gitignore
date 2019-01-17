@@ -4,4 +4,4 @@
 .Ruserdata
 /data/
 /plots/
-.pyc
+*.pyc
