@@ -7,7 +7,6 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_predict
 
-
 # import data
 data_dir = 'C:/Users/mworley/nfl_tracking/data/'
 dfx = pd.read_csv(data_dir + 'processed/features.csv', index_col=0)
@@ -15,10 +14,9 @@ dfy = pd.read_csv(data_dir + 'processed/targets.csv', index_col=0)
 
 # get dataset without speed features
 cnames = dfx.columns.tolist()
-speed_col_i = cnames.index('s__abs_energy')
-xns = dfx[dfx.columns[0:speed_col_i]]
-
-# %%
+speed_features = [c for c in cnames if 's__' in c]
+speed_first = dfx.columns.tolist().index(speed_features[0])
+xns = dfx[dfx.columns[0:speed_first]]
 y = dfy['success'].values
 
 # %%
@@ -48,20 +46,27 @@ print accuracy_ws
 # use RFE to select speed features
 from sklearn.feature_selection import RFE
 # create the RFE model and select features
-rfe = RFE(clf, 1)
+rfe = RFE(clf, 5)
 # filter data down to speed features
-xspd = x[:, speed_col_i:]
+xspd = x[:, speed_first:]
 rfe = rfe.fit(xspd, y)
 
 # summarize the selection of the attributes
 rfe_bool = rfe.support_
 rfe_ranks = rfe.ranking_
+rfe_cols = dfx.columns[speed_first:][rfe_bool]
+df_rfe = dfx[rfe_cols]
 
-rfe_cols = dfx.columns[speed_col_i:][rfe_bool]
-dfx[rfe_cols].describe()
+df_rfe.to_csv(data_dir + 'out/speed_rfe.csv')
 
-dfx.groupby('success')[rfe_cols].mean()
+# fit model to all data points
+clf.fit(x, y)
+clf.coef_
 
-rfe_cols[0]
+coef_speed = clf.coef_[:, speed_first:]
+coef_rfe = coef_speed[:, rfe_bool].flatten()
+for r in zip(df_rfe.columns, coef_rfe):
+    print r
+
 
 # plot top
