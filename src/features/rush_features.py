@@ -1,5 +1,8 @@
 import pandas as pd
 import numpy as np
+import sys
+sys.path.insert(0, 'c:/users/mworley/nfl_tracking/src/features')
+from feature_functions import *
 
 data_dir = 'C:/Users/mworley/nfl_tracking/data/'
 
@@ -64,12 +67,20 @@ df['x_atcont'] = df.groupby(group)['x_atcont'].transform('max')
 df['x_fromscrim_atcont'] = df['x_atcont'] - df.groupby(group)['x_ball'].transform('first')
 df['x_aftercont'] = df.groupby(group)['x'].transform('last') - df['x_atcont']
 
+
+# fill x gain to contact with x gain to end if no contact was made
+early_con = df['x_fromscrim_atcont'].fillna(df['x_fromscrim'])
+df['early_con'] = np.where(early_con < 0, early_con, 0)
+
 # get first frame crossing line of scrimmage
 df['across'] = (df['x_fromscrim'] > 0).astype(int)
 df['hascrossed'] = df.groupby(group)['across'].transform('cummax')
 df['madeacross'] = df.groupby(group)['across'].transform('max')
 
-#
-f = 'interim/rush_features.csv'
-print 'saving %s' % (f)
-df.to_csv(data_dir + f)
+# get defense features
+dfdef = pd.read_csv(data_dir + 'interim/defense_features.csv', index_col=0)
+
+# merge with rusher tracking
+mrg = pd.merge(df, dfdef, on=['gameId', 'playId', 'frame.id'], how='inner')
+
+write_file('interim/rush_features.csv', mrg)

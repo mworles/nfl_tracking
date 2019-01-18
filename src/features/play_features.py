@@ -1,5 +1,8 @@
 import pandas as pd
 import numpy as np
+import sys
+sys.path.insert(0, 'c:/users/mworley/nfl_tracking/src/features')
+from feature_functions import *
 
 data_dir = 'C:/Users/mworley/nfl_tracking/data/'
 df = pd.read_csv(data_dir + 'raw/plays.csv')
@@ -25,7 +28,10 @@ cols_tokeep = ['gameId', 'playId', 'down', 'yardsToGo', 'defendersInTheBox',
                'form_shotgun', 'form_single', 'down_1st', 'down_2nd']
 play_features = mrg.loc[:, cols_tokeep]
 
+dfout = game_play_index(play_features)
+
 # save to file
 f = 'interim/play_features.csv'
 print 'writing %s' % (f)
-play_features.to_csv(data_dir + f)
+dfout.to_csv(data_dir + f)
+dfout.head()

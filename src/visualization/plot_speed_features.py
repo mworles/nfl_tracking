@@ -15,9 +15,13 @@ us = pd.Series(['_'] * df.shape[0]).astype(str)
 df['game_play'] = df["gameId"].map(str) + us + df["playId"].map(str)
 
 # plot speed over frames, colored by feature value
-#x_speed = speed[rfe.columns]
+x_speed = speed[rfe.columns]
 x_speed = speed.reset_index().rename(columns={'id': 'game_play'})
 mrg = pd.merge(df, x_speed, on='game_play', how='inner')
+
+
+runs.head()
+
 
 # %%
 # plot speed over frames, colored by feature value
@@ -65,23 +69,25 @@ for feat in comp_feats: #rfe.columns:
     #plt.close()
     plt.savefig(plot_dir + str(n) + '_highlow'+ '.jpg')
     n += 1
-'''
+
 # %%
+fig, axs = plt.subplots(figsize=(10, 8))
 runs = mrg.drop_duplicates('game_play')
-runs['n_runs'] = runs.groupby(['nflId'])['game_play'].transform('count')
-runs = runs[runs['n_runs'] > 20]
-dir = ['h', 'h', 'l', 'l', 'l']
-gb = runs.groupby('displayName')
+runs = runs[runs['x_fromscrim_atcont'] < 10]
+#runs['n_runs'] = runs.groupby(['nflId'])['game_play'].transform('count')
+scol = x_speed.columns[1]
+x = runs[scol]
+y = runs['x_fromscrim_atcont']
+col = runs['PlayResult']
+plt.scatter(x, y, marker="8", c=col, s = 40, cmap='magma', alpha=0.25)
+#plt.clim(minmax[0], minmax[1])
+plt.title(scol)
+plt.colorbar()
+plt.show()
+#plt.close()
 
-for tup in zip(rfe.columns, dir):
-    gb_mean = gb[tup[0]].mean()
-    if tup[1] == 'h':
-        gb_mean = gb_mean.sort_values(ascending=False)
-    else:
-        gb_mean = gb_mean.sort_values()
-    print gb_mean.iloc[0:10]
-
-
+# %%
+'''
 # %%
 cols = rfe.columns
 n = 0

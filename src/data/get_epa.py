@@ -1,7 +1,11 @@
 import pandas as pd
+import sys
+sys.path.insert(0, 'c:/users/mworley/nfl_tracking/src/features')
+from feature_functions import *
+
 
 # %%# get plays to use to filter scrapR data
-data_dir = data_dir = 'C:/Users/mworley/nfl_tracking/data/'
+data_dir = 'C:/Users/mworley/nfl_tracking/data/'
 rd = pd.read_csv(data_dir + 'interim/rushes_clean.csv', index_col=0,
                  low_memory=False)
 plays = rd[['gameId', 'playId']].copy()
@@ -28,7 +32,6 @@ def sucrate(row):
     else:
         return sucrate_neut[row['down']]
 
-
 # %%
 mrg['sucrate_bar'] = mrg.apply(lambda x: sucrate(x), axis=1) * mrg['ydstogo']
 mrg['success'] = (mrg['Yards.Gained'] >= mrg['sucrate_bar']).astype(int)
@@ -37,4 +40,7 @@ cols_tokeep = ['gameId', 'playId', 'Rusher', 'Rusher_ID',
                'ExpPts', 'EPA', 'Win_Prob', 'WPA', 'success']
 
 mrg_keep = mrg[cols_tokeep]
-mrg_keep.to_csv(data_dir + 'interim/epa_rush.csv')
+
+dfout = game_play_index(mrg_keep)
+
+write_file('interim/epa_rush.csv', dfout)

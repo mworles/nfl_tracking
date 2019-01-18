@@ -1,4 +1,5 @@
 import pandas as pd
+import sys
 
 data_dir = 'C:/Users/mworley/nfl_tracking/data/'
 df = pd.read_csv(data_dir + 'interim/defenders.csv', index_col=0)
