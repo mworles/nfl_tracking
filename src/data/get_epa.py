@@ -37,7 +37,8 @@ mrg['sucrate_bar'] = mrg.apply(lambda x: sucrate(x), axis=1) * mrg['ydstogo']
 mrg['success'] = (mrg['Yards.Gained'] >= mrg['sucrate_bar']).astype(int)
 cols_tokeep = ['gameId', 'playId', 'Rusher', 'Rusher_ID',
                'RunLocation', 'RunGap', 'Tackler1', 'Tackler2',
-               'ExpPts', 'EPA', 'Win_Prob', 'WPA', 'success']
+               'ExpPts', 'EPA', 'Win_Prob', 'WPA', 'success',
+               'Yards.Gained']
 
 mrg_keep = mrg[cols_tokeep]
 

@@ -9,7 +9,7 @@ def run():
     print 'importing data'
     # import data file
     data_dir = 'C:/Users/mworley/nfl_tracking/data/'
-    df = pd.read_csv(data_dir + 'interim/rush_selected.csv', index_col=0)
+    df = pd.read_csv(data_dir + 'interim/rushes_toLOS.csv', index_col=0)
 
     # create 'game_play' column as unique identifier
     us = pd.Series(['_'] * df.shape[0]).astype(str)

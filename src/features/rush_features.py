@@ -61,7 +61,7 @@ df['dir_cum'] = df.groupby(group)['dir_diff'].apply(fx_cum)
 
 # for each play, columns for after contact and x position at first contact
 df['first_cont'] = np.where(df['event'] == 'first_contact', 1, 0)
-df['after_cont'] = df.groupby(group)['first_cont'].shift(1).transform('cummax')
+df['after_cont'] = df.groupby(group)['first_cont'].transform('cummax')
 df['x_atcont'] = np.where(df['event'] == 'first_contact', df['x'], np.nan)
 df['x_atcont'] = df.groupby(group)['x_atcont'].transform('max')
 df['x_fromscrim_atcont'] = df['x_atcont'] - df.groupby(group)['x_ball'].transform('first')
@@ -76,11 +76,18 @@ df['early_con'] = np.where(early_con < 0, early_con, 0)
 df['across'] = (df['x_fromscrim'] > 0).astype(int)
 df['hascrossed'] = df.groupby(group)['across'].transform('cummax')
 df['madeacross'] = df.groupby(group)['across'].transform('max')
+df['frames_across'] = df.groupby(group)['across'].transform('cumsum')
 
 # get defense features
 dfdef = pd.read_csv(data_dir + 'interim/defense_features.csv', index_col=0)
 
-# merge with rusher tracking
+# merge defense features with rusher tracking
 mrg = pd.merge(df, dfdef, on=['gameId', 'playId', 'frame.id'], how='inner')
+
+# create column indicating distance to closest defender at LOS
+nc = mrg.groupby(['gameId', 'playId', 'across'])['dfndis_min'].transform('first')
+mrg['dfndis_LOS'] = nc
+mrg.loc[mrg['across'] == 0, 'dfndis_LOS'] = np.nan
+mrg['dfndis_LOS'] = mrg.groupby(group)['dfndis_LOS'].transform('max')
 
 write_file('interim/rush_features.csv', mrg)
