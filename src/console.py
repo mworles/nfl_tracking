@@ -1,34 +1,23 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+import sys
+sys.path.insert(0, 'c:/users/mworley/nfl_tracking/src/features')
+from feature_functions import *
 
-# import data
+rush_types = ['toLOS', 'contact', 'tocontact']
+target_types = ['success', 'EPA', 'yards_aftercont', 'yards']
+#rush_targets = [(x, y) for x in rush_types, y in target_types] #for y in target_types]
+
+rush_targets = [(x, y) for x in rush_types for y in target_types]
+
+rush_targets
+
+rush_type = rush_types[0]
+target_type = target_types[0]
+
+dfx = combine_features(rush_type, target_type)
 data_dir = 'C:/Users/mworley/nfl_tracking/data/'
+targets = pd.read_csv(data_dir + 'interim/targets.csv', index_col=0)
 
-dfx = pd.read_csv(data_dir + 'processed/features.csv', index_col=0)
-dfy = pd.read_csv(data_dir + 'processed/targets.csv', index_col=0)
-df = pd.merge(dfx, dfy, left_index=True, right_index=True, how='inner')
-
-# select training rows
-df = df[df['testset'] == 0]
-
-x = df['dfndis_LOS']
-y = df['EPA']
-
-plt.scatter(x, y)
-plt.show()
-
-
-# %%
-df = pd.read_csv(data_dir + 'interim/contact_features.csv', index_col=0)
-df.head(50)
-
-# %%
-df = pd.read_csv("C:/Users/mworley/nfl_tracking/data/raw/scrapR2017.csv")
-df = df[df['RushAttempt'] == 1]
-for c in df.columns:
-    print c
-
-df = df.sort_values('EPA', ascending=False)
-
-df[['EPA', 'qtr', 'yrdline100', 'ydstogo', 'GoalToGo', 'down', 'Yards.Gained', 'Touchdown', 'WPA']]
+targets[~targets.index.duplicated()].shape
+targets.shape

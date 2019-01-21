@@ -16,18 +16,18 @@ df['across_sum'] = df.groupby(['gameId', 'playId'])['across'].transform('cumsum'
 df = df[df['across_sum'] < 2]
 
 # write file for speed feature extraction
-write_file('interim/rush_toLOS_frames.csv', dfout)
+write_file('interim/rush_toLOS_frames.csv', df)
 
 # keep one frame per rush
-df = df[df['event'] == 'ball_snap']
+df_one = df[df['event'] == 'ball_snap']
 
 # set first 80% of games as training set
-game_ids = df['gameId'].unique()
+game_ids = df_one['gameId'].unique()
 traincut_game = game_ids[int(len(game_ids) * 0.80)]
-df['testset'] = (df['gameId'] > traincut_game).astype(int)
+df_one['testset'] = (df_one['gameId'] > traincut_game).astype(int)
 
 # save file
-dfout = game_play_index(df)
+dfout = game_play_index(df_one)
 write_file('interim/rush_toLOS.csv', dfout)
 
 # read in data again
@@ -46,7 +46,7 @@ df = df[df['x_fromscrim_atcont'] <=20]
 df = df[df['x_aftercont'] <=20]
 
 # write file for speed feature extraction
-write_file('interim/rush_contact_frames.csv', dfout)
+write_file('interim/rush_contact_frames.csv', df)
 
 # keep one frame per rush
 df_one = df[df['event'] == 'ball_snap']
@@ -64,7 +64,7 @@ write_file('interim/rush_contact.csv', dfout)
 df = df[df['after_cont'] != 1]
 
 # write file for speed feature extraction
-write_file('interim/rush_tocontact_frames.csv', dfout)
+write_file('interim/rush_tocontact_frames.csv', df)
 
 # keep one frame per rush
 df_one = df_one[df_one['event'] == 'ball_snap']
@@ -77,33 +77,3 @@ df_one['testset'] = (df_one['gameId'] > traincut_game).astype(int)
 # save file
 dfout = game_play_index(df_one)
 write_file('interim/rush_tocontact.csv', dfout)
-
-# read in data again
-df = pd.read_csv(data_dir + 'interim/rush_features.csv', index_col=0)
-
-# select runs where rusher crossed line of scrimmage
-df = df[df['madeacross'] == 1]
-
-# select runs where contact ocurred
-df = df[df['x_atcont'].notnull()]
-
-# keep runs where:
-# contact occurred 20 yards or less past LOS
-df = df[df['x_fromscrim_atcont'] <=20]
-# yards after contact was 20 yards or less
-df = df[df['x_aftercont'] <=20]
-
-# write file for speed feature extraction
-write_file('interim/rush_contact_frames.csv', dfout)
-
-# keep one frame per rush
-df_one = df[df['event'] == 'ball_snap']
-
-# set first 80% of games as training set
-game_ids = df_one['gameId'].unique()
-traincut_game = game_ids[int(len(game_ids) * 0.80)]
-df_one['testset'] = (df_one['gameId'] > traincut_game).astype(int)
-
-# save file
-dfout = game_play_index(df_one)
-write_file('interim/rush_contact.csv', dfout)

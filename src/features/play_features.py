@@ -24,8 +24,12 @@ mrg['form_single'] = mrg['offenseFormation'].isin(formations_single).astype(int)
 mrg['down_1st'] = (mrg['down'] == 1).astype(int)
 mrg['down_2nd'] = (mrg['down'] == 2).astype(int)
 
-cols_tokeep = ['gameId', 'playId', 'down', 'yardsToGo', 'defendersInTheBox',
+# drop 4th down plays
+mrg = mrg[mrg['down'] != 4]
+
+cols_tokeep = ['gameId', 'playId', 'yardsToGo', 'defendersInTheBox',
                'form_shotgun', 'form_single', 'down_1st', 'down_2nd']
+
 play_features = mrg.loc[:, cols_tokeep]
 
 dfout = game_play_index(play_features)
@@ -34,4 +38,3 @@ dfout = game_play_index(play_features)
 f = 'interim/play_features.csv'
 print 'writing %s' % (f)
 dfout.to_csv(data_dir + f)
-dfout.head()
