@@ -24,7 +24,9 @@ def combine_features(rush_type, target_type):
     rush_file = data_dir + 'interim/rush_' + rush_type
     rush = pd.read_csv(rush_file + '.csv', index_col=0)
     play = pd.read_csv(data_dir + 'interim/play_features.csv', index_col=0)
-    speed = pd.read_csv(rush_file + '_speed_' + target_type + '.csv', index_col=0)
+    speed_file = "".join([data_dir, 'interim/speed_rush_', rush_type, '_',
+                          target_type, '.csv'])
+    speed = pd.read_csv(speed_file, index_col=0)
     rush_cols = ['testset', 'early_con', 'dfndis_LOS']
     rush = rush[rush_cols]
 
