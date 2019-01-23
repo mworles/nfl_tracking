@@ -20,7 +20,7 @@ rush_targets = [(x, y) for x in rush_types for y in target_types]
 
 # %%
 
-for rt in rush_targets[0:1]:
+for rt in rush_targets[2:3]:
     outfiles = [f for f in os.listdir(data_dir + 'out/')]
     if rt[1] in ['yards', 'EPA', 'yards_aftercont']:
         alg_names = ['Lasso', 'Ridge']

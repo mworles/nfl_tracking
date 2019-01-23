@@ -90,4 +90,13 @@ mrg['dfndis_LOS'] = nc
 mrg.loc[mrg['across'] == 0, 'dfndis_LOS'] = np.nan
 mrg['dfndis_LOS'] = mrg.groupby(group)['dfndis_LOS'].transform('max')
 
+# drop some rushes with invalid values
+mrg['time_max'] = mrg.groupby(mrg.index)['time_cum'].transform('max')
+mrg = mrg[mrg['time_max'] < 10]
+mrg = mrg.iloc[:, :-1]
+
+mrg['x_fs_min'] = mrg.groupby(['gameId', 'playId'])['x_fromscrim'].transform('min')
+mrg = mrg[mrg['x_fs_min'] < 0]
+mrg = mrg.iloc[:, :-2]
+
 write_file('interim/rush_features.csv', mrg)

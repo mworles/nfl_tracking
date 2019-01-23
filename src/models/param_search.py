@@ -10,11 +10,11 @@ rush_types = ['toLOS', 'tocontact', 'contact']
 target_types = ['success', 'EPA', 'yards_aftercont', 'yards']
 rush_targets = [(x, y) for y in target_types for x in rush_types]
 # remove invalid pairs
-rush_targets.remove(('toLOS', 'yards_aftercont'))
-pd.Series(rush_targets)
+
+random_iters = 50
 
 if __name__ == '__main__':
-
+    '''
     #map(lambda x: random_search_cv(x[0], x[1], random_iters), rush_targets)
     clf = LogisticRegression(random_state=0)
     lm_lasso = Lasso(max_iter=10000, random_state=0)
@@ -49,32 +49,41 @@ if __name__ == '__main__':
     x = rush_targets[5]
     param_dict = {'alpha': [0.001, 0.50]}
     guided_search_regression(x[0], x[1], lm_lasso, param_dict, 100)
+    '''
 
-    # rush tocontact target yards_aftercont
+    # rush toLOS target yards_aftercont
     x = rush_targets[6]
+    random_search_cv(x[0], x[1], random_iters)
+
+    #param_dict = {'alpha': [0.01, 0.2]}
+    #guided_search_regression(x[0], x[1], lm_lasso, param_dict, 50)
+    '''
+    # rush tocontact target yards_aftercont
+    x = rush_targets[7]
     param_dict = {'alpha': [0.01, 0.2]}
     guided_search_regression(x[0], x[1], lm_lasso, param_dict, 50)
 
     # rush contact target yards_aftercont
-    x = rush_targets[7]
+    x = rush_targets[8]
     alpha_values = [0.01, 20]
     param_dict = {'alpha': alpha_values}
     guided_search_regression(x[0], x[1], lm_ridge, param_dict, 50)
 
     # rush toLOS target yards
-    x = rush_targets[8]
+    x = rush_targets[9]
     alpha_values = [0.005, 0.05]
     param_dict = {'alpha': alpha_values}
     guided_search_regression(x[0], x[1], lm_lasso, param_dict, 100)
 
     # rush tocontact target yards
-    x = rush_targets[9]
+    x = rush_targets[10]
     alpha_values = [0.005, 0.1]
     param_dict = {'alpha': alpha_values}
     guided_search_regression(x[0], x[1], lm_lasso, param_dict, 100)
 
     # rush contact target yards
-    x = rush_targets[10]
+    x = rush_targets[11]
     alpha_values = [0.005, 0.1]
     param_dict = {'alpha': alpha_values}
     guided_search_regression(x[0], x[1], lm_lasso, param_dict, 100)
+    '''
