@@ -3,23 +3,13 @@
 
     ├── README.md          <- The top-level README
     |
-    ├── data
-    |   |
-    │   ├── interim        <- Intermediate data that has been transformed.
-    |   |
-    |   ├── out            <- Data generated from models.
-    |   |
-    │   ├── processed      <- The final, canonical data sets for modeling.
-    |   |
-    │   ├── raw            <- The original, immutable data dump.
-    |   |
-    |   └── tmp            <- Placeholder for temporary data stored during longer scripts.
-    |
     ├── models             <- Trained models, model predictions, or model summaries
     │
-    ├── src                <- Source code for use in this project.
+    ├── src                <- Source code for use in this project
     |   |
     │   ├── data           <- Scripts to download or generate data
+    │   │
+    │   ├── evals          <- Scripts to evaluate models and model predictions
     │   │
     │   ├── features       <- Scripts to turn raw data into features
     │   │
