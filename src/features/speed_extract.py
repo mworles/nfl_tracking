@@ -5,6 +5,6 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
 if __name__ == '__main__':
-    #extract_speed_features('rush_toLOS')
-    #extract_speed_features('rush_tocontact')
-    #extract_speed_features('rush_contact')
+    extract_speed_features('rush_toLOS')
+    extract_speed_features('rush_tocontact')
+    extract_speed_features('rush_contact')

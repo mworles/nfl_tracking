@@ -7,7 +7,6 @@ def extract_speed_features(rush_file):
 
     # import data file
     data_dir = 'C:/Users/mworley/nfl_tracking/data/'
-    #rush_file = data_dir + 'interim/' + rush_file + 'csv'
     rush_file_frames = data_dir + 'interim/' + rush_file + '_frames.csv'
     print 'importing %s' % (rush_file_frames)
     df = pd.read_csv(rush_file_frames, index_col=0).reset_index(drop=True)
