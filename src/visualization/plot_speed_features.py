@@ -33,7 +33,7 @@ comp_feats = ['s__abs_energy',
               's__fft_coefficient__coeff_0__attr_"abs"']
 
 for feat in comp_feats: #rfe.columns:
-    print feat
+    print(feat
     minmax = mrg[feat].describe().loc[['min', 'max'], ].values
     p1 = np.percentile(mrg[feat], 10)
     p2 = np.percentile(mrg[feat], 90)
@@ -115,6 +115,6 @@ for c in cols:
     #plt.savefig(plot_dir + str(n) + '.jpg')
     plt.show()
     plt.close()
-    print ' ' .join(['plot', str(n), c])
+    print(' ' .join(['plot', str(n), c])
     n += 1
 '''

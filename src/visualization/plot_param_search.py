@@ -90,7 +90,7 @@ for rt in rush_targets[2:3]:
             n += 1
         plt.tight_layout()
         #plt.show()
-        print 'saving %s' % (fig_loc)
+        print('saving %s' % (fig_loc)
         fig.savefig(fig_loc)
 
     else:
@@ -130,7 +130,7 @@ for rt in rush_targets[2:3]:
             n += 1
         plt.tight_layout()
         #plt.show()
-        print 'saving %s' % (fig_loc)
+        print('saving %s' % (fig_loc)
         fig.savefig(fig_loc)
 
         score = 'r2'
@@ -164,7 +164,7 @@ for rt in rush_targets[2:3]:
             n += 1
         plt.tight_layout()
         #plt.show()
-        print 'saving %s' % (fig_loc)
+        print('saving %s' % (fig_loc)
         fig.savefig(fig_loc)
 plt.close('all')
 

@@ -10,7 +10,8 @@ for j, c in zip(range(15), plt.rcParams['axes.prop_cycle']):
 report_plots = 'C:/Users/mworley/nfl_tracking/reports/plots/'
 data_dir = 'C:/Users/mworley/nfl_tracking/data/'
 df = pd.read_csv(data_dir + 'interim/rush_features.csv', index_col=0)
-
+print(df.head())
+"""
 # select runs where rusher crossed line of scrimmage
 df = df[df['madeacross'] == 1]
 
@@ -99,6 +100,4 @@ plt.close()
 player_count = df[df['event'] == 'ball_snap'].groupby('displayName')['event'].count()
 df.groupby(['gameId', 'playId'])['time'].count().describe()
 player_count.sort_values(ascending=False).head(50)
-
-
-player_count.describe()
+"""
